@@ -39,5 +39,5 @@ const float CAL_THERM_C = 0.0000007954800125;
    motor RPM from a wheel sensor will result in a low resolution reading.
 */
 
-const int  	CAL_GEARING_TYPE 				= 0; 	// 0 = Default (two sensors), 1 = Only Motor Sensor, 2 = Only Wheel Sensor
+const int  	CAL_RPM_SENSOR_SETUP			= 0; 	// 0 = Default (two sensors), 1 = Only Motor Sensor, 2 = Only Wheel Sensor
 const float CAL_SINGLESPEED_GEAR_RATIO 		= 1; 	//Enter the gear ratio for the single speed car as WheelTeeth/MotorTeeth

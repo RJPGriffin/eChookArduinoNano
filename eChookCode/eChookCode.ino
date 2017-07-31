@@ -559,7 +559,7 @@ float readWheelSpeed() //wheelRPM is updated whenever this is called
 
 
 
-  if (CAL_GEARING_TYPE == 0 || CAL_GEARING_TYPE == 2) //Calculates wheel RPM from wheel sensor
+  if (CAL_RPM_SENSOR_SETUP == 0 || CAL_RPM_SENSOR_SETUP == 2) //Calculates wheel RPM from wheel sensor
   {
     int tempWheelPoll = wheelPoll;
     wheelPoll = 0;
@@ -584,7 +584,7 @@ float readWheelSpeed() //wheelRPM is updated whenever this is called
 
     wheelSpeedMetersPerSecond = wheelDistanceTravelled / ((float)(tempWheelPollTime - tempLastWheelPollTime) / (float)1000.0); // the /1000 converts the milliseconds to Seconds
 
-  } else if (CAL_GEARING_TYPE == 1) //Calculates wheel speed from Motor RPM
+  } else if (CAL_RPM_SENSOR_SETUP == 1) //Calculates wheel speed from Motor RPM
   {
   	// We can only get RMP from the motor, so need to calculate the distance in meters the wheel would travel at that RMP in one second to get speed in m/s. 
   	// Due to the division this is less accurate than the method above, even asuming that the given gear ratio is accurate.
@@ -629,7 +629,7 @@ float readMotorRPM()
 {
   float motorShaftRPM = 0;
   
-  	if(CAL_GEARING_TYPE == 0 || CAL_GEARING_TYPE == 1) // Read motor RMP from motor RPM sensor
+  	if(CAL_RPM_SENSOR_SETUP == 0 || CAL_RPM_SENSOR_SETUP == 1) // Read motor RMP from motor RPM sensor
   	{
 	  // First action is to take copies of the motor poll count and time so that the variables don't change during the calculations.
 
@@ -654,7 +654,7 @@ float readMotorRPM()
 
 	  motorShaftRPM = motorRevolutionsPerMin / timeDiffs;
 
-	}else if(CAL_GEARING_TYPE == 2) //Calculate Motor RPM from wheel RPM
+	}else if(CAL_RPM_SENSOR_SETUP == 2) //Calculate Motor RPM from wheel RPM
 	{
 		motorShaftRPM = wheelRPM * CAL_SINGLESPEED_GEAR_RATIO;
 	}
