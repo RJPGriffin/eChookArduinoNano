@@ -24,11 +24,20 @@ const float     CAL_WHEEL_CIRCUMFERENCE  = 1.178; //Outer circumference of tyre,
 
 //Board Specific Calibrations
 const float CAL_REFERENCE_VOLTAGE   = 5;     // Voltage seen on the arduino 5V rail
-const float CAL_BATTERY_TOTAL       = 6.15;  // Multiplier for 24v calculation. Calculated by 24v Input devided by voltage on Arduino pin A0
-const float CAL_BATTERY_LOWER       = 3.071; // Multiplier for 12v calculation. Calculated by 12V Input devided by voltage on Arduino pin A7
+const float CAL_BATTERY_TOTAL       = 6.15;  // Multiplier for 24v calculation. Calculated by voltage on the 24v Input divided by voltage on Arduino pin A0
+const float CAL_BATTERY_LOWER       = 3.071; // Multiplier for 12v calculation. Calculated by voltage on the 12V Input divided by voltage on Arduino pin A7
 const float CAL_CURRENT             = 37.55; // Current Multiplier - See documentation for calibration method
 
 //Board and Sensor Specific Calibrations
 const float CAL_THERM_A = 0.001871300068; //Steinhart-Hart constants - See documentation for calibration method
 const float CAL_THERM_B = 0.00009436080271;
 const float CAL_THERM_C = 0.0000007954800125;
+
+//Single Speed Options
+/* By default the eChook is set up to look for wheel speed and motor speed signals. If your car is single speed and you do 
+   not regularly change the gear ratio motor and wheel speed can be calculated from the same sensor. Note that calculating 
+   motor RPM from a wheel sensor will result in a low resolution reading.
+*/
+
+const int  	CAL_GEARING_TYPE 				= 0; 	// 0 = Default (two sensors), 1 = Only Motor Sensor, 2 = Only Wheel Sensor
+const float CAL_SINGLESPEED_GEAR_RATIO 		= 1; 	//Enter the gear ratio for the single speed car as WheelTeeth/MotorTeeth

@@ -17,7 +17,7 @@
 
 
 /** ================================== */
-/** Includes            		           */
+/** Includes                           */
 /** ================================== */
 
 #include <math.h>
@@ -83,8 +83,8 @@ const int               AMPSENSOR_CAL_DELAY              = 3000;    // calibrati
 
 /** ___________________________________________________________________________________________________ DATA IDENTIFIERS */
 /**
- *  If these are altered the data will no longer be read correctly by the phone.
- */
+    If these are altered the data will no longer be read correctly by the phone.
+*/
 
 const char SPEED_ID            = 's';
 const char MOTOR_ID            = 'm';
@@ -112,14 +112,14 @@ unsigned long   lastWheelSpeedPollTime      = 0;    // poll interval for wheel s
 unsigned long   lastMotorSpeedPollTime      = 0;    // poll interval for wheel speed
 int             currentSensorOffset         = 0;    //offset value for the current sensor
 int             currentAvgLoopCount         = 0;    //Counter for current loop average
-int       	  	loopCounter              		= 0;
+int             loopCounter                 = 0;
 
 
 /** ___________________________________________________________________________________________________ INTERRUPT VERIABLES */
 /** Any variables that are being used in an Interrupt Service Routine need to be declared as volatile. This ensures
- *  that each time the variable is accessed it is the master copy in RAM rather than a cached version within the CPU.
- *  This way the main loop and the ISR variables are always in sync
- */
+    that each time the variable is accessed it is the master copy in RAM rather than a cached version within the CPU.
+    This way the main loop and the ISR variables are always in sync
+*/
 volatile unsigned long motorPoll      = 0;
 volatile unsigned long wheelPoll      = 0;
 volatile unsigned long fanPoll        = 0;
@@ -140,33 +140,33 @@ int brakeButtonPrevious   = LOW; // Track state so that a button press can be ac
 
 float batteryVoltageTotal   = 0;
 float batteryVoltageLower   = 0;
-float throttle        		  = 0;
-float current       		    = 0;
-float motorRPM        		  = 0;
-float wheelRPM 				      = 0;
-float wheelSpeed      		  = 0;
-float gearRatio 			      = 0;
-float tempOne       		    = 0;
-float tempTwo       		    = 0;
-float tempThree       		  = 0;
-int   brake         		    = 0;
+float throttle              = 0;
+float current               = 0;
+float motorRPM              = 0;
+float wheelRPM              = 0;
+float wheelSpeed            = 0;
+float gearRatio             = 0;
+float tempOne               = 0;
+float tempTwo               = 0;
+float tempThree             = 0;
+int   brake                 = 0;
 
 
 /** ___________________________________________________________________________________________________ Smoothing Variables */
 
 /**
- * For some signals it is desireable to average them over a longer period than is possible using the hardware
- * components on the board. To do this we average the last few readings taken by the Arduino.
- * When a new reading is taken it is added to an array. Each new reading takes the place of the oldest reading
- * in the array, so the array always contains the last X number of readings, where X is the size of the array.
- * In our case, for a reading being updated every 250ms, an array of length 4 would average the readings over
- * the last second.
- * To implement this in code, two golbal variables are needed per filter:
- * 	> The Array - to store the last X number of readings
- *	> A Count - This dictates which position in the array a new reading goes to and loops between 0 and array length - 1
- * To make it simple to alter the length of time to average over it is good practice to define the max count
- * value and aray length as a global const too.
- */
+   For some signals it is desireable to average them over a longer period than is possible using the hardware
+   components on the board. To do this we average the last few readings taken by the Arduino.
+   When a new reading is taken it is added to an array. Each new reading takes the place of the oldest reading
+   in the array, so the array always contains the last X number of readings, where X is the size of the array.
+   In our case, for a reading being updated every 250ms, an array of length 4 would average the readings over
+   the last second.
+   To implement this in code, two golbal variables are needed per filter:
+    > The Array - to store the last X number of readings
+    > A Count - This dictates which position in the array a new reading goes to and loops between 0 and array length - 1
+   To make it simple to alter the length of time to average over it is good practice to define the max count
+   value and aray length as a global const too.
+*/
 
 //Current Smoothing Variables:
 
@@ -198,12 +198,12 @@ void setup()
   pinMode(LED_1_OUT_PIN,        OUTPUT);
   pinMode(LED_2_OUT_PIN,        OUTPUT);
 
-  pinMode(VBATT_IN_PIN,     	  INPUT);
-  pinMode(VBATT1_IN_PIN,      	INPUT);
-  pinMode(THROTTLE_IN_PIN,    	INPUT);
-  pinMode(AMPS_IN_PIN,        	INPUT);
-  pinMode(TEMP1_IN_PIN,       	INPUT);
-  pinMode(TEMP2_IN_PIN,       	INPUT);
+  pinMode(VBATT_IN_PIN,         INPUT);
+  pinMode(VBATT1_IN_PIN,        INPUT);
+  pinMode(THROTTLE_IN_PIN,      INPUT);
+  pinMode(AMPS_IN_PIN,          INPUT);
+  pinMode(TEMP1_IN_PIN,         INPUT);
+  pinMode(TEMP2_IN_PIN,         INPUT);
 
 
   pinMode(LAUNCH_BTN_IN_PIN,    INPUT_PULLUP);
@@ -211,11 +211,11 @@ void setup()
   pinMode(BRAKE_IN_PIN,         INPUT_PULLUP);  //input type will depend on implementation of brake light
 
   /**
-   * Set up Interrupts:
-   * When the specified digital change is seen on a the interrupt pin it will pause the main loop and
-   * run the code in the Interrupt Service Routine (ISR) before resuming the main code.
-   * The interrupt number is not the pin number on the arduino Nano. For explanation see here:
-   * https://www.arduino.cc/en/Reference/AttachInterrupt
+     Set up Interrupts:
+     When the specified digital change is seen on a the interrupt pin it will pause the main loop and
+     run the code in the Interrupt Service Routine (ISR) before resuming the main code.
+     The interrupt number is not the pin number on the arduino Nano. For explanation see here:
+     https://www.arduino.cc/en/Reference/AttachInterrupt
   */
 
   attachInterrupt(0, motorSpeedISR, RISING);
@@ -226,23 +226,23 @@ void setup()
   //Initialise debounce objects
   cycleButtonDebounce.attach(CYCLE_BTN_IN_PIN);
   cycleButtonDebounce.interval(50);
-  
+
   launchButtonDebounce.attach(LAUNCH_BTN_IN_PIN);
   launchButtonDebounce.interval(50);
-  
+
   brakeButtonDebounce.attach(BRAKE_IN_PIN);
   brakeButtonDebounce.interval(50);
-  
+
 
   /**
-   * Zero the current transducer. All hall effect current sensors will need zeroing - To do this we
-   * take the reading from the sensor during startup where current is virtually zero. (Obviously the
-   * arduino is drawing current at this point, but compared to the resolution of the curent sensor
-   * this is negligible).
-   * The time over which the zero reading is taken is defined in milliseconds by the
-   * AMPSENSOR_CAL_DELAY constant and the zero value is taken by averaging readings over this time.
-   * All future current readings take the differential between this zero and the new reading as the
-   * current value.
+     Zero the current transducer. All hall effect current sensors will need zeroing - To do this we
+     take the reading from the sensor during startup where current is virtually zero. (Obviously the
+     arduino is drawing current at this point, but compared to the resolution of the curent sensor
+     this is negligible).
+     The time over which the zero reading is taken is defined in milliseconds by the
+     AMPSENSOR_CAL_DELAY constant and the zero value is taken by averaging readings over this time.
+     All future current readings take the differential between this zero and the new reading as the
+     current value.
   */
 
   long temp = 0;
@@ -257,20 +257,20 @@ void setup()
 
 
   /**
-   * Initialise Serial Communication
-   * If communication over bluetooth is not working or the results are garbled it is likely the
-   * baud rate set here (number in brakcets after Serial.begin) and the baud rate of the bluetooth
-   * module aren't set the same.
-   *
-   * A good tutorial for altering the HC-05 Bluetooth Module parameters is here:
-   * http://www.instructables.com/id/Modify-The-HC-05-Bluetooth-Module-Defaults-Using-A/
-   *
-   * The HC-05 modules commonly come preset with baud rates of 9600 or 32000
-   *
-   * Alternatively the following bit of code will attempt to automatically configure a
-   * HC-05 module if it is plugged in in AT (setup) mode then the arduino is reset. (Power Arduino,
-   * unplug HC-05 module, press button on HC-05 module, plug back in holding button [light should blink slowly],
-   * release button, then reset Arduino)
+     Initialise Serial Communication
+     If communication over bluetooth is not working or the results are garbled it is likely the
+     baud rate set here (number in brakcets after Serial.begin) and the baud rate of the bluetooth
+     module aren't set the same.
+
+     A good tutorial for altering the HC-05 Bluetooth Module parameters is here:
+     http://www.instructables.com/id/Modify-The-HC-05-Bluetooth-Module-Defaults-Using-A/
+
+     The HC-05 modules commonly come preset with baud rates of 9600 or 32000
+
+     Alternatively the following bit of code will attempt to automatically configure a
+     HC-05 module if it is plugged in in AT (setup) mode then the arduino is reset. (Power Arduino,
+     unplug HC-05 module, press button on HC-05 module, plug back in holding button [light should blink slowly],
+     release button, then reset Arduino)
   */
 
   if (checkBtAtMode()) // checks if the arduino is in AT mode
@@ -295,7 +295,7 @@ void loop()
   //Asynchronous Operations - those that aren't governed by the 4Hz update/transmit. Primarily buttons.
   buttonChecks(); //Checks buttons each loop, debounces and sends any changes in state
 
-  
+
 
   throttle = readThrottle(); // if this is being used as the input to a motor controller it is recommended to check it at a higher frequency than 4Hz
 
@@ -316,7 +316,7 @@ void loop()
 
 
     sendData(THROTTLE_INPUT_ID, throttle);
-   
+
 
 
     if (loopCounter == 1)
@@ -368,12 +368,12 @@ void buttonChecks()
   brakeButtonDebounce.update();
 
   int cycleButtonState = !cycleButtonDebounce.read(); //Buttons are LOW when pressed, ! inverts this, so state is HIGH when pressed
-  if(cycleButtonState != cycleButtonPrevious) //Button has changed state - either pressed or depressed
+  if (cycleButtonState != cycleButtonPrevious) //Button has changed state - either pressed or depressed
   {
-    if(cycleButtonState == HIGH) //Button Pressed
+    if (cycleButtonState == HIGH) //Button Pressed
     {
       sendData(CYCLE_VIEW_ID, 1); // Actual packet content is irrelevant - sending a packet with the ID represents a button press
-    }    
+    }
 
     //Don't care when button is released
 
@@ -381,28 +381,28 @@ void buttonChecks()
   }
 
   int launchButtonState = !launchButtonDebounce.read(); //Buttons are LOW when pressed, ! inverts this, so state is HIGH when pressed
-  if(launchButtonState != launchButtonPrevious) //Button has changed state - either pressed or depressed
+  if (launchButtonState != launchButtonPrevious) //Button has changed state - either pressed or depressed
   {
-    if(launchButtonState == HIGH) //Button Pressed
+    if (launchButtonState == HIGH) //Button Pressed
     {
       sendData(LAUNCH_MODE_ID, 1); // Actual packet content is irrelevant - sending a packet with the ID represents a button press
     }
-    
+
     //Don't care when button is released
 
     launchButtonPrevious = launchButtonState; //Update previous state
   }
 
   int brakeButtonState = !brakeButtonDebounce.read(); //Buttons are LOW when pressed, ! inverts this, so state is HIGH when pressed
-  if(brakeButtonState != brakeButtonPrevious) //Button has changed state - either pressed or depressed
+  if (brakeButtonState != brakeButtonPrevious) //Button has changed state - either pressed or depressed
   {
-    if(brakeButtonState == HIGH) //Button Pressed
+    if (brakeButtonState == HIGH) //Button Pressed
     {
-      sendData(BRAKE_PRESSED_ID, 100); 
+      sendData(BRAKE_PRESSED_ID, 100);
     }
-    else if(brakeButtonState == LOW) //Button Released
+    else if (brakeButtonState == LOW) //Button Released
     {
-     sendData(BRAKE_PRESSED_ID, 0);
+      sendData(BRAKE_PRESSED_ID, 0);
     }
 
     brakeButtonPrevious = brakeButtonState; //Update previous state
@@ -411,9 +411,9 @@ void buttonChecks()
 }
 
 /**
- * Sensor Reading Functions
- *
- * Each function returns the value of the sensor it is reading
+   Sensor Reading Functions
+
+   Each function returns the value of the sensor it is reading
 */
 
 
@@ -500,37 +500,37 @@ int readThrottle() //This function is for a variable Throttle input
 }
 
 /*
-int readThrottle() //This function is for a push button, on/off Throttle input
-{
+  int readThrottle() //This function is for a push button, on/off Throttle input
+  {
   float tempThrottle = analogRead(THROTTLE_IN_PIN);
 
   if(tempThrottle > 200)
   {
-  	tempThrottle = 100; //full throttle
+    tempThrottle = 100; //full throttle
   }else
   {
-  	tempThrottle = 0; //No throttle
+    tempThrottle = 0; //No throttle
   }
 
   return ((int)tempThrottle); // the (int) converts the value into an integer value before the return function uses it
-}
+  }
 */
 
 
 
 
 /**
- *
- * If an active sensor such as a TMP37 is used this has a calibrated voltage output, linear to the temperature change.
- * A cheaper option is to use Thermistors. The resistance across a thrmistor changes with temperature, but the change is not linear
- * so some maths is required to translate the voltage reading into a temperature value.
- * For more information see here: http://playground.arduino.cc/ComponentLib/Thermistor2
- * This method uses the Steinhart-Hart equation to calculate the actual temperature, however this requires three coefficients,
- * A, B and C, that are specific to a thermistor. The ones below are for the thermistors provided with the board, however if you
- * use a different thermistor the coefficients should be given in the datasheet, and if not, can be calculated using this calculator:
- * http://www.thinksrs.com/downloads/programs/Therm%20Calc/NTCCalibrator/NTCcalculator.htm
- *
- *
+
+   If an active sensor such as a TMP37 is used this has a calibrated voltage output, linear to the temperature change.
+   A cheaper option is to use Thermistors. The resistance across a thrmistor changes with temperature, but the change is not linear
+   so some maths is required to translate the voltage reading into a temperature value.
+   For more information see here: http://playground.arduino.cc/ComponentLib/Thermistor2
+   This method uses the Steinhart-Hart equation to calculate the actual temperature, however this requires three coefficients,
+   A, B and C, that are specific to a thermistor. The ones below are for the thermistors provided with the board, however if you
+   use a different thermistor the coefficients should be given in the datasheet, and if not, can be calculated using this calculator:
+   http://www.thinksrs.com/downloads/programs/Therm%20Calc/NTCCalibrator/NTCcalculator.htm
+
+
  **/
 
 
@@ -551,36 +551,60 @@ float readTempTwo()
 
 float readWheelSpeed() //wheelRPM is updated whenever this is called
 {
+  float wheelDistanceTravelled = 0;
+  float wheelSpeedMetersPerSecond = 0;
+  float tempWheelRPM = 0;
+
   // First action is to take readings and reset the wheel count so that there are no change to the variables during the calculations or between reading and resetting:
 
-  int tempWheelPoll = wheelPoll;
-  wheelPoll = 0;
 
 
-  unsigned long tempLastWheelPollTime = lastWheelSpeedPollTime;
-  unsigned long tempWheelPollTime = millis();
-  lastWheelSpeedPollTime = tempWheelPollTime;
+  if (CAL_GEARING_TYPE == 0 || CAL_GEARING_TYPE == 2) //Calculates wheel RPM from wheel sensor
+  {
+    int tempWheelPoll = wheelPoll;
+    wheelPoll = 0;
 
-  //Wheel RMP has been tacked into this function at a later date, so could do with re-writing really...
+    unsigned long tempLastWheelPollTime = lastWheelSpeedPollTime;
+    unsigned long tempWheelPollTime = millis();
+    lastWheelSpeedPollTime = tempWheelPollTime;
 
-  //Wheel RMP Calculations:
-  wheelRPM = (float) tempWheelPoll / (float) CAL_WHEEL_MAGNETS; //gives number of rotations
 
-  wheelRPM = wheelRPM / ((float)(tempWheelPollTime - tempLastWheelPollTime) / (float) 60000.0); // /60,000 converts millis to minutes
+    //Wheel RPM Calculations:
+    tempWheelRPM = (float) tempWheelPoll / (float) CAL_WHEEL_MAGNETS; //gives number of rotations
 
-  // All integers in the folowing equation are cast to float so that the value is not converted to an integer at any point reducing accuracy through rounding.
+    wheelRPM = tempWheelRPM / ((float)(tempWheelPollTime - tempLastWheelPollTime) / (float) 60000.0); // /60,000 converts millis to minutes. This RPM is not acually used here, but used for motor RMP calulations on a single speed car with wheel sensor
 
-  // Next task is to calculate the distance travelled. This is dome by takin the wheel poll, which is the number of magnets that have passed the sensor since the last check
-  // and dividing it by the number of wheel magnets to give the number of revolutions, then multiply by the circumference to give distance travelled in meters:
-  float wheelDistanceTravelled =  (float) tempWheelPoll / (float) CAL_WHEEL_MAGNETS * (float) CAL_WHEEL_CIRCUMFERENCE;
+    // All integers in the folowing equation are cast to float so that the value is not converted to an integer at any point reducing accuracy through rounding.
 
-  // Now determine how much time in seconds it took to travel this distance, and divide the distanve by time to get speed in meters per second.
+    // Next task is to calculate the distance travelled. This is dome by takin the wheel poll, which is the number of magnets that have passed the sensor since the last check
+    // and dividing it by the number of wheel magnets to give the number of revolutions, then multiply by the circumference to give distance travelled in meters:
+    wheelDistanceTravelled =  (float) tempWheelPoll / (float) CAL_WHEEL_MAGNETS * (float) CAL_WHEEL_CIRCUMFERENCE;
 
-  float wheelSpeedMetersPerSecond = wheelDistanceTravelled / ((float)(tempWheelPollTime - tempLastWheelPollTime) / (float)1000.0); // the /1000 converts the milliseconds to seconds
+    // Now determine how much time in seconds it took to travel this distance, and divide the distanve by time to get speed in meters per second.
 
-  //Next section of code handles the smooting:
+    wheelSpeedMetersPerSecond = wheelDistanceTravelled / ((float)(tempWheelPollTime - tempLastWheelPollTime) / (float)1000.0); // the /1000 converts the milliseconds to Seconds
 
-  speedSmoothingArray[speedSmoothingCount] = wheelSpeedMetersPerSecond; //adds current speed into oldest position in array
+  } else if (CAL_GEARING_TYPE == 1) //Calculates wheel speed from Motor RPM
+  {
+  	// We can only get RMP from the motor, so need to calculate the distance in meters the wheel would travel at that RMP in one second to get speed in m/s. 
+  	// Due to the division this is less accurate than the method above, even asuming that the given gear ratio is accurate.
+    
+    tempWheelRPM = motorRPM / CAL_SINGLESPEED_GEAR_RATIO;
+
+    float wheelRPS = tempWheelRPM / 60; 
+
+    wheelSpeedMetersPerSecond = wheelRPS * (float) CAL_WHEEL_CIRCUMFERENCE;
+  }
+
+  //Send the latest reading into the smoothing function
+  wheelSpeedMetersPerSecond = smoothWheelSpeed(wheelSpeedMetersPerSecond);
+
+  return (wheelSpeedMetersPerSecond); //return smoothed value
+}
+
+float smoothWheelSpeed (float newReading)
+{
+  speedSmoothingArray[speedSmoothingCount] = newReading; //adds current speed into oldest position in array
 
   speedSmoothingCount ++ ; //incrememnts array position for next reading
 
@@ -589,72 +613,81 @@ float readWheelSpeed() //wheelRPM is updated whenever this is called
     speedSmoothingCount = 0; //reset if count exceeds array length
   }
 
-  wheelSpeedMetersPerSecond = 0; //reset variable ready to sum array
+  float arraySum = 0; //Variable to contain the sum of the array
 
   for (int i = 0; i < speedSmoothingSetting; i++)
   {
-    wheelSpeedMetersPerSecond = speedSmoothingArray[i];
+    arraySum = speedSmoothingArray[i];
   }
 
-  wheelSpeedMetersPerSecond = wheelSpeedMetersPerSecond / speedSmoothingSetting; //divide summed figure by array count to get mean value
+  arraySum = arraySum / speedSmoothingSetting; //divide summed figure by array count to get mean value
 
-  return (wheelSpeedMetersPerSecond); //return smoothed value
+  return (arraySum); //return smoothed value
 }
 
 float readMotorRPM()
 {
-  // First action is to take copies of the motor poll count and time so that the variables don't change during the calculations.
-
-  int tempMotorPoll = motorPoll;
-  motorPoll = 0;
-
-
-  unsigned long tempLastMotorPollTime = lastMotorSpeedPollTime;
-  unsigned long tempMotorPollTime = millis();
-  lastMotorSpeedPollTime = tempMotorPollTime;
-
-  // Now calculate the number of revolutions of the motor shaft
-
-  float motorRevolutions = tempMotorPoll / CAL_MOTOR_MAGNETS;
+  float motorShaftRPM = 0;
   
-  float motorRevolutionsPerMin = motorRevolutions * 60.0;
-  
-  float timeDiffms = tempMotorPollTime - tempLastMotorPollTime;
-  float timeDiffs = timeDiffms / 1000.0;
-    // Now use the time time passed to convert this to revolutions per minute
-  // RMP = (revolutions / latestPollTIme - lastPollTime) / 1000 to convert to Seconds) * 60 to convert to minutes
+  	if(CAL_GEARING_TYPE == 0 || CAL_GEARING_TYPE == 1) // Read motor RMP from motor RPM sensor
+  	{
+	  // First action is to take copies of the motor poll count and time so that the variables don't change during the calculations.
 
-  float motorShaftRPM = motorRevolutionsPerMin / timeDiffs;
+	  int tempMotorPoll = motorPoll;
+	  motorPoll = 0;
+
+
+	  unsigned long tempLastMotorPollTime = lastMotorSpeedPollTime;
+	  unsigned long tempMotorPollTime = millis();
+	  lastMotorSpeedPollTime = tempMotorPollTime;
+
+	  // Now calculate the number of revolutions of the motor shaft
+
+	  float motorRevolutions = tempMotorPoll / CAL_MOTOR_MAGNETS;
+
+	  float motorRevolutionsPerMin = motorRevolutions * 60.0;
+
+	  float timeDiffms = tempMotorPollTime - tempLastMotorPollTime;
+	  float timeDiffs = timeDiffms / 1000.0;
+	  // Now use the time time passed to convert this to revolutions per minute
+	  // RMP = (revolutions / latestPollTIme - lastPollTime) / 1000 to convert to Seconds) * 60 to convert to minutes
+
+	  motorShaftRPM = motorRevolutionsPerMin / timeDiffs;
+
+	}else if(CAL_GEARING_TYPE == 2) //Calculate Motor RPM from wheel RPM
+	{
+		motorShaftRPM = wheelRPM * CAL_SINGLESPEED_GEAR_RATIO;
+	}
 
   return (motorShaftRPM);
 }
 
 float calculateGearRatio()
 {
-	float tempGearRatio = motorRPM/wheelRPM;
+  float tempGearRatio = motorRPM / wheelRPM;
 
-	return(tempGearRatio);
+  return (tempGearRatio);
 }
 
 
 
 /**
- * Calculation Functions
- *
- * Where calculations are needed multiple times, they are broken out into their own functions here
+   Calculation Functions
+
+   Where calculations are needed multiple times, they are broken out into their own functions here
 */
 
 /**
- * Temperature Calculations:
- *
- * If an active sensor such as a TMP37 is used this has a calibrated voltage output, linear to the temperature change.
- * A cheaper option is to use Thermistors. The resistance across a thrmistor changes with temperature, but the change is not linear
- * so some maths is required to translate the voltage reading into a temperature value.
- * For more information see here: http://playground.arduino.cc/ComponentLib/Thermistor2
- * This method uses the Steinhart-Hart equation to calculate the actual temperature, however this requires three coefficients,
- * A, B and C, that are specific to a thermistor. The ones below are for the thermistors provided with the board, however if you
- * use a different thermistor the coefficients should be given in the datasheet, and if not, can be calculated using this calculator:
- * http://www.thinksrs.com/downloads/programs/Therm%20Calc/NTCCalibrator/NTCcalculator.htm
+   Temperature Calculations:
+
+   If an active sensor such as a TMP37 is used this has a calibrated voltage output, linear to the temperature change.
+   A cheaper option is to use Thermistors. The resistance across a thrmistor changes with temperature, but the change is not linear
+   so some maths is required to translate the voltage reading into a temperature value.
+   For more information see here: http://playground.arduino.cc/ComponentLib/Thermistor2
+   This method uses the Steinhart-Hart equation to calculate the actual temperature, however this requires three coefficients,
+   A, B and C, that are specific to a thermistor. The ones below are for the thermistors provided with the board, however if you
+   use a different thermistor the coefficients should be given in the datasheet, and if not, can be calculated using this calculator:
+   http://www.thinksrs.com/downloads/programs/Therm%20Calc/NTCCalibrator/NTCcalculator.htm
  **/
 
 float thermistorADCToCelcius(int rawADC)
@@ -678,7 +711,7 @@ float thermistorADCToCelcius(int rawADC)
   // As the ADC values are our readings of the voltage, we can substitute V_in with 1024 and V_out with the reading taken from the ADC, which is passed into this function as rawADC
   // This makes the calculation:
 
-  float thermistorResistance = ((float)FIXED_RESISTOR_VALUE * (float)rawADC)/ (float)((float)1023 - (float)rawADC);
+  float thermistorResistance = ((float)FIXED_RESISTOR_VALUE * (float)rawADC) / (float)((float)1023 - (float)rawADC);
 
   // Next, you'll notice that the log natural (ln) of this resistance needs to be calculated 4 times in the Steinhart-Hart equation. This is a complex and long calculation for the arduino.
   // As such it is efficient to do it once and save the result for use later:
@@ -703,7 +736,7 @@ float thermistorADCToCelcius(int rawADC)
     Serial.println(temperature);
   }
 
-  
+
 
   // Now return the Celcius Value:
 
@@ -715,12 +748,12 @@ float thermistorADCToCelcius(int rawADC)
 /** BLUETOOTH DATA PACKETING FUNCTIONS */
 /** ================================== */
 /** The two functions in this section handle packeting the data and sending it over USART to the bluetooth module. The two functions are
- *  identically named so are called the in the same way, however the first is run if the value passed to it is a float and the second is
- *  run if the value passed into it is an integer (an override function). For all intents and purposes you can ignore this and simply call
- *  'sendData(identifier, value);' using one of the defined identifiers and either a float or integer value to send informaion over BT.
- *
- * identifier:  see definitions at start of code
- * value:       the value to send (typically some caluclated value from a sensor)
+    identically named so are called the in the same way, however the first is run if the value passed to it is a float and the second is
+    run if the value passed into it is an integer (an override function). For all intents and purposes you can ignore this and simply call
+    'sendData(identifier, value);' using one of the defined identifiers and either a float or integer value to send informaion over BT.
+
+   identifier:  see definitions at start of code
+   value:       the value to send (typically some caluclated value from a sensor)
 */
 
 void sendData(char identifier, float value)
@@ -866,7 +899,7 @@ int checkBtAtMode() //Checks if the HC-05 Bluetooth module is in AT mode. Return
 
   Serial.begin(38400); //AT mode baud rate
 
-  while(!Serial){} //Wait for serial to initialise
+  while (!Serial) {} //Wait for serial to initialise
 
   delay(200);
 
@@ -992,32 +1025,32 @@ void configureBluetooth()
   }
 
 
-//Set Password_____________________________________________ Not working - leaving for now
+  //Set Password_____________________________________________ Not working - leaving for now
 
-//    flushSerial();
-//    Serial.print("AT+PSWD="); //command to change Password
-//    //  Serial.println(BT_PASSWORD);
-//    Serial.print("1234");
-//    Serial.print("\r\n");
-//  
-//    waitForSerial(1000);
-//  
-//    tempOne = (char)Serial.read();
-//  
-//    waitForSerial(500);
-//  
-//    tempTwo = (char)Serial.read();
-//  
-//  
-//    if (tempOne == 'O' && tempTwo == 'K') //Was the response "OK"?
-//    {
-//      Serial.println("Password Set");
-//      btPasswordSet = 1;
-//    }
-//    else
-//    {
-//      Serial.println("Password Not Set");
-//    }
+  //    flushSerial();
+  //    Serial.print("AT+PSWD="); //command to change Password
+  //    //  Serial.println(BT_PASSWORD);
+  //    Serial.print("1234");
+  //    Serial.print("\r\n");
+  //
+  //    waitForSerial(1000);
+  //
+  //    tempOne = (char)Serial.read();
+  //
+  //    waitForSerial(500);
+  //
+  //    tempTwo = (char)Serial.read();
+  //
+  //
+  //    if (tempOne == 'O' && tempTwo == 'K') //Was the response "OK"?
+  //    {
+  //      Serial.println("Password Set");
+  //      btPasswordSet = 1;
+  //    }
+  //    else
+  //    {
+  //      Serial.println("Password Not Set");
+  //    }
 
 
   // Check all operations completed successfully
@@ -1079,11 +1112,11 @@ void waitForSerial(int timeOut)
 /** ================================== */
 
 /** This function is triggered every time the magnet on the motor shaft passes the Hall effect
- *  sensor. Care must be taken to ensure the sensor is position the correct way and so is the
- *  magnet as it will only respond in a specific orientation and magnet pole.
- *
- *  It is best practice to keep ISRs as small as possible.
- */
+    sensor. Care must be taken to ensure the sensor is position the correct way and so is the
+    magnet as it will only respond in a specific orientation and magnet pole.
+
+    It is best practice to keep ISRs as small as possible.
+*/
 void motorSpeedISR()
 {
   motorPoll++;
